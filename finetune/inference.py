@@ -3,7 +3,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 from pathlib import Path
 
-MODEL_ID = "google/gemma-4-2b-it"  # Gemma 4 instruction-tuned
+MODEL_ID = "google/gemma-7b-it"  # Gemma 2 instruction-tuned
 FINETUNED_MODEL_PATH = Path(__file__).parent / "checkpoints" / "final_model"
 MAX_NEW_TOKENS = 200
 

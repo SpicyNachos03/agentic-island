@@ -1,10 +1,11 @@
 import torch
 from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    TrainingArguments,
+    AutoTokenizer, 
+    AutoModelForCausalLM, 
+    TrainingArguments, 
     Trainer,
-    DataCollatorForLanguageModeling
+    DataCollatorForLanguageModeling,
+    BitsAndBytesConfig
 )
 from peft import LoraConfig, get_peft_model, TaskType
 from datasets import Dataset
@@ -16,23 +17,25 @@ FAST_MODE = True  # Set to True for hackathon (faster training), False for bette
 
 if FAST_MODE:
     # Fast mode for hackathon (~30-60 minutes total)
-    MODEL_ID = "google/gemma-4-2b-it"  # Gemma 4 2B instruction-tuned
+    MODEL_ID = "google/gemma-7b-it"  # Gemma 2 7B instruction-tuned (good balance)
     BATCH_SIZE = 4
     GRADIENT_ACCUMULATION_STEPS = 4
     NUM_EPOCHS = 1  # Single epoch for speed
-    LEARNING_RATE = 5e-4  # Higher learning rate for single epoch
+    LEARNING_RATE = 5e-4  # Higher learning rate for LoRA
     MAX_SEQ_LENGTH = 512
-    USE_4BIT = True  # Quantization for speed
-    LORA_RANK = 4  # Smaller rank for faster training
+    USE_LORA = True  # Use LoRA for faster training
+    USE_4BIT = True  # Quantization for memory efficiency
+    LORA_RANK = 4
 else:
     # Full training for production (~6-12 hours)
-    MODEL_ID = "google/gemma-4-9b-it"  # Gemma 4 9B instruction-tuned for Ascent GX10
-    BATCH_SIZE = 8  # Increased for 128GB memory
-    GRADIENT_ACCUMULATION_STEPS = 2  # Reduced since batch size increased
+    MODEL_ID = "google/gemma-7b-it"  # Gemma 2 7B instruction-tuned for Ascent GX10
+    BATCH_SIZE = 8
+    GRADIENT_ACCUMULATION_STEPS = 2
     NUM_EPOCHS = 3
     LEARNING_RATE = 2e-4
-    MAX_SEQ_LENGTH = 1024  # Increased for better context
-    USE_4BIT = False  # Set to True if memory issues, False for better quality on GX10
+    MAX_SEQ_LENGTH = 1024
+    USE_LORA = True
+    USE_4BIT = False  # Full precision for better quality
     LORA_RANK = 8
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -69,11 +72,16 @@ def main():
     # Load model with optional 4-bit quantization
     if USE_4BIT:
         print("Using 4-bit quantization for memory efficiency")
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4"
+        )
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_ID,
-            torch_dtype=torch.float16,
-            device_map="auto",
-            load_in_4bit=True
+            quantization_config=bnb_config,
+            device_map="auto"
         )
     else:
         print("Using full precision (no quantization)")
@@ -83,20 +91,22 @@ def main():
             device_map="auto"
         )
     
-    print("Configuring LoRA...")
-    # Configure LoRA for parameter-efficient fine-tuning
-    lora_config = LoraConfig(
-        task_type=TaskType.CAUSAL_LM,
-        r=LORA_RANK,  # rank (4 for fast mode, 8 for full)
-        lora_alpha=32,
-        lora_dropout=0.1,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
-        inference_mode=False
-    )
-    
-    # Apply LoRA
-    model = get_peft_model(model, lora_config)
-    model.print_trainable_parameters()
+    # Apply LoRA or full fine-tuning
+    if USE_LORA:
+        print("Configuring LoRA...")
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=LORA_RANK,
+            lora_alpha=32,
+            lora_dropout=0.1,
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+            inference_mode=False
+        )
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
+    else:
+        print("Using full fine-tuning (all parameters trainable)")
+        # All parameters are trainable by default
     
     print("Loading and tokenizing data...")
     # Load datasets
@@ -130,7 +140,7 @@ def main():
         logging_steps=10,
         save_steps=100,
         eval_steps=100,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         save_strategy="steps",
         save_total_limit=3,
         load_best_model_at_end=True,
