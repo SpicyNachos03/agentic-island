@@ -5,7 +5,8 @@ from playwright.async_api import async_playwright
 import time
 
 BASE_URL = "https://transcripts.foreverdreaming.org"
-FORUM_URL = f"{BASE_URL}/viewforum.php?f=2882"
+# Season 5 forum (change forum ID for different seasons)
+FORUM_URL = f"{BASE_URL}/viewforum.php?f=2882&start=78"  # Season 5
 OUTPUT_DIR = Path(__file__).parent / "transcripts"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -88,14 +89,27 @@ async def main():
             for i, episode in enumerate(episodes, 1):
                 print(f"\n[{i}/{len(episodes)}] Processing: {episode['title']}")
                 
+                # Generate safe filename
+                safe_title = re.sub(r'[^\w\s-]', '', episode['title']).strip()
+                safe_title = re.sub(r'[-\s]+', '_', safe_title)
+                output_file = OUTPUT_DIR / f"{safe_title}.txt"
+                
+                # Check if file already exists
+                if output_file.exists():
+                    print(f"Already exists, skipping: {output_file}")
+                    # Read existing transcript
+                    with open(output_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    all_transcripts.append({
+                        "title": episode['title'],
+                        "content": content
+                    })
+                    continue
+                
                 try:
                     transcript = await scrape_transcript(page, episode)
                     
                     # Save individual transcript
-                    safe_title = re.sub(r'[^\w\s-]', '', episode['title']).strip()
-                    safe_title = re.sub(r'[-\s]+', '_', safe_title)
-                    output_file = OUTPUT_DIR / f"{safe_title}.txt"
-                    
                     with open(output_file, 'w', encoding='utf-8') as f:
                         f.write(f"Episode: {episode['title']}\n")
                         f.write(f"URL: {episode['url']}\n")
