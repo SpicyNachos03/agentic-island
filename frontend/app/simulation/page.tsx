@@ -44,7 +44,7 @@ export default function SimulationPage() {
     if (currentScene < scenes.length - 1) {
       setCurrentScene(currentScene + 1);
     } else {
-      router.push('/feedback');
+      router.push('/create');
     }
   };
 
@@ -174,17 +174,21 @@ export default function SimulationPage() {
               animate={{ scale: 1 }}
               className="bg-white/70 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 max-w-3xl mx-auto"
             >
-              <div className="aspect-video bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg flex items-center justify-center border border-purple-100">
-                <div className="text-center space-y-4">
-                  <div className="w-20 h-20 mx-auto bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 cursor-pointer">
-                    <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-rose-400 border-b-8 border-b-transparent ml-1" />
-                  </div>
-                  <p className="text-gray-700 font-medium">Watch Your Date Unfold</p>
-                  <p className="text-sm text-gray-500 max-w-md mx-auto italic">
-                    "{profile.idealDate}"
-                  </p>
-                </div>
+              <div className="aspect-video rounded-lg overflow-hidden border border-purple-100">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                >
+                  <source src="/latest_video.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
+              <p className="text-sm text-gray-500 max-w-md mx-auto italic mt-4">
+                "{profile.idealDate}"
+              </p>
             </motion.div>
           </motion.div>
         );
