@@ -6,7 +6,7 @@ import time
 
 BASE_URL = "https://transcripts.foreverdreaming.org"
 # Season 5 forum (change forum ID for different seasons)
-FORUM_URL = f"{BASE_URL}/viewforum.php?f=2882&start=78"  # Season 5
+FORUM_URL = f"{BASE_URL}/viewforum.php?f=2882&start=156" 
 OUTPUT_DIR = Path(__file__).parent / "transcripts"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -72,7 +72,7 @@ async def scrape_transcript(page, episode):
 async def main():
     async with async_playwright() as p:
         # Launch browser
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
         
         try:

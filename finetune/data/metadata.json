@@ -1,0 +1,7 @@
+{
+  "total_examples": 17386,
+  "train_examples": 13908,
+  "val_examples": 1738,
+  "test_examples": 1740,
+  "format": "gemma_instruction_tuning"
+}
