@@ -16,27 +16,29 @@ import json
 FAST_MODE = True  # Set to True for hackathon (faster training), False for better quality
 
 if FAST_MODE:
-    # Fast mode for hackathon (~30-60 minutes total)
-    MODEL_ID = "google/gemma-7b-it"  # Gemma 2 7B instruction-tuned (good balance)
-    BATCH_SIZE = 4
-    GRADIENT_ACCUMULATION_STEPS = 4
+    # Fast mode for hackathon (~30-45 minutes total)
+    MODEL_ID = "google/gemma-2b-it"  # Gemma 2 2B instruction-tuned (stable with LoRA)
+    BATCH_SIZE = 16
+    GRADIENT_ACCUMULATION_STEPS = 1
     NUM_EPOCHS = 1  # Single epoch for speed
     LEARNING_RATE = 5e-4  # Higher learning rate for LoRA
     MAX_SEQ_LENGTH = 512
-    USE_LORA = True  # Use LoRA for faster training
+    USE_LORA = True  # Use LoRA for stability and speed
     USE_4BIT = True  # Quantization for memory efficiency
     LORA_RANK = 4
+    TRAIN_SUBSET = 0.05  # Train on 30% of data for speed
 else:
-    # Full training for production (~6-12 hours)
-    MODEL_ID = "google/gemma-7b-it"  # Gemma 2 7B instruction-tuned for Ascent GX10
-    BATCH_SIZE = 8
-    GRADIENT_ACCUMULATION_STEPS = 2
+    # Full training for production (~3-6 hours)
+    MODEL_ID = "google/gemma-2b-it"  # Gemma 2 2B instruction-tuned
+    BATCH_SIZE = 16
+    GRADIENT_ACCUMULATION_STEPS = 1
     NUM_EPOCHS = 3
     LEARNING_RATE = 2e-4
     MAX_SEQ_LENGTH = 1024
     USE_LORA = True
     USE_4BIT = False  # Full precision for better quality
     LORA_RANK = 8
+    TRAIN_SUBSET = 1.0  # Use all data
 
 DATA_DIR = Path(__file__).parent / "data"
 OUTPUT_DIR = Path(__file__).parent / "checkpoints"
@@ -106,12 +108,21 @@ def main():
         model.print_trainable_parameters()
     else:
         print("Using full fine-tuning (all parameters trainable)")
-        # All parameters are trainable by default
+        # Enable gradient checkpointing to save memory
+        if USE_GRADIENT_CHECKPOINTING:
+            model.gradient_checkpointing_enable()
+            print("Gradient checkpointing enabled for memory efficiency")
     
     print("Loading and tokenizing data...")
     # Load datasets
     train_dataset = load_data(DATA_DIR / "train.txt")
     val_dataset = load_data(DATA_DIR / "val.txt")
+    
+    # Use subset of data for faster training in fast mode
+    if TRAIN_SUBSET < 1.0:
+        subset_size = int(len(train_dataset) * TRAIN_SUBSET)
+        train_dataset = train_dataset.select(range(subset_size))
+        print(f"Using {TRAIN_SUBSET*100}% of training data: {len(train_dataset)} samples")
     
     # Tokenize
     train_dataset = train_dataset.map(
@@ -138,8 +149,8 @@ def main():
         learning_rate=LEARNING_RATE,
         warmup_steps=100,
         logging_steps=10,
-        save_steps=100,
-        eval_steps=100,
+        save_steps=500,
+        eval_steps=500,
         eval_strategy="steps",
         save_strategy="steps",
         save_total_limit=3,
