@@ -11,59 +11,50 @@ export default function Home() {
     <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#f5f1ed' }}>
 
       {/* Subtle Organic Blobs */}
-      <motion.div
+      <div
         className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full blur-3xl opacity-40"
         style={{ backgroundColor: '#ffc2d1' }}
-        animate={{
-          x: [0, 50, 0],
-          y: [0, 30, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
       />
-      <motion.div
+      <div
         className="absolute top-20 right-0 w-[450px] h-[450px] rounded-full blur-3xl opacity-35"
         style={{ backgroundColor: '#a7c7e7' }}
-        animate={{
-          x: [0, -40, 0],
-          y: [0, 50, 0],
-        }}
-        transition={{
-          duration: 30,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
       />
-      <motion.div
+      <div
         className="absolute bottom-0 right-1/3 w-[550px] h-[550px] rounded-full blur-3xl opacity-30"
         style={{ backgroundColor: '#b4e7ce' }}
-        animate={{
-          x: [0, -30, 0],
-          y: [0, -40, 0],
-        }}
-        transition={{
-          duration: 35,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
       />
 
       {/* Navigation */}
-      <nav className="relative z-10 px-8 py-6 flex justify-between items-center backdrop-blur-sm">
-        <div className="text-sm">
+      <motion.nav
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 px-8 py-6 flex justify-between items-center backdrop-blur-sm"
+      >
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-sm"
+        >
           <p className="font-light text-gray-800">agentic island</p>
           <p className="text-xs text-gray-500">designs</p>
-        </div>
+        </motion.div>
         <div className="flex gap-8 text-sm text-gray-700">
-          <a href="#home" className="hover:text-gray-900 transition-colors">Home</a>
-          <a href="#about" className="hover:text-gray-900 transition-colors">About</a>
-          <a href="#contact" className="hover:text-gray-900 transition-colors">Contact</a>
+          {["Home", "About", "Contact"].map((item, i) => (
+            <motion.a
+              key={item}
+              href={`#${item.toLowerCase()}`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              className="hover:text-gray-900 transition-colors"
+            >
+              {item}
+            </motion.a>
+          ))}
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Main content */}
       <div id="home" className="relative z-10 max-w-5xl mx-auto px-8 pt-20 pb-32">
@@ -126,48 +117,43 @@ export default function Home() {
           </button>
         </motion.div>
 
-        {/* Minimal decorative elements */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="absolute top-32 right-20 text-5xl opacity-60"
-        >
-          🌸
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="absolute bottom-40 left-32 text-4xl opacity-60"
-        >
-          💐
-        </motion.div>
       </div>
 
       {/* About Section */}
       <div id="about" className="relative z-10 max-w-6xl mx-auto px-8 py-32">
-        <div className="text-center mb-20">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
+        >
           <h2 className="text-5xl md:text-6xl font-serif mb-4 text-gray-900">
             How It Works
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-light">
             Your personalized AI-powered dating simulation experience
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="bg-white/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition-all"
-            whileHover={{ y: -4 }}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            whileHover={{ y: -8, scale: 1.02 }}
+            className="bg-white/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 hover:shadow-xl transition-shadow"
           >
-            <div className="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mb-6">
+            <motion.div
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+              className="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mb-6"
+            >
               <Users className="w-8 h-8 text-rose-600" />
-            </div>
+            </motion.div>
             <h3 className="text-xl font-semibold mb-3 text-gray-900">
               Share Your Story
             </h3>
@@ -177,16 +163,22 @@ export default function Home() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition-all"
-            whileHover={{ y: -4 }}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            whileHover={{ y: -8, scale: 1.02 }}
+            className="bg-white/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 hover:shadow-xl transition-shadow"
           >
-            <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6">
+            <motion.div
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+              className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6"
+            >
               <Zap className="w-8 h-8 text-purple-600" />
-            </div>
+            </motion.div>
             <h3 className="text-xl font-semibold mb-3 text-gray-900">
               AI Magic
             </h3>
@@ -196,16 +188,22 @@ export default function Home() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="bg-white/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition-all"
-            whileHover={{ y: -4 }}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            whileHover={{ y: -8, scale: 1.02 }}
+            className="bg-white/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 hover:shadow-xl transition-shadow"
           >
-            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
+            <motion.div
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+              className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6"
+            >
               <Star className="w-8 h-8 text-blue-600" />
-            </div>
+            </motion.div>
             <h3 className="text-xl font-semibold mb-3 text-gray-900">
               Watch Your Match
             </h3>
@@ -234,10 +232,33 @@ export default function Home() {
       </div>
 
       {/* Footer info */}
-      <div id="contact" className="relative z-10 text-center py-16 border-t border-gray-200">
-        <p className="text-xs text-gray-500 mb-2">📍 Based in Calgary, Canada</p>
-        <p className="text-xs text-gray-400">Agentic Island © 2026 • Too Hot to Fine Tune</p>
-      </div>
+      <motion.div
+        id="contact"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="relative z-10 text-center py-16 border-t border-gray-200"
+      >
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="text-xs text-gray-500 mb-2"
+        >
+          📍 Based in Calgary, Canada
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+          className="text-xs text-gray-400"
+        >
+          Agentic Island © 2026 • Too Hot to Fine Tune
+        </motion.p>
+      </motion.div>
     </div>
   );
 }
